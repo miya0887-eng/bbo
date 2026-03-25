@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무일지 목록 — 대구 북구 도시재생지원센터</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary:   #ffffff;
+    --bg-secondary: #f7f6f3;
+    --bg-tertiary:  #f0efe9;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b67;
+    --text-tertiary: #9d9d98;
+    --border-light:  rgba(0,0,0,0.10);
+    --border-mid:    rgba(0,0,0,0.18);
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --red-bg:    #FCEBEB; --red-text:   #A32D2D; --red-border: #E24B4A;
+    --amber-bg:  #FAEEDA; --amber-text: #633806; --amber-border: #EF9F27;
+    --blue-bg:   #E6F1FB; --blue-text:  #185FA5; --blue-border: #378ADD;
+    --green-bg:  #EAF3DE; --green-text: #3B6D11; --green-border: #639922;
+    --gray-bg:   #F1EFE8; --gray-text:  #5F5E5A; --gray-border: #888780;
+    --purple-bg: #EEEDFE; --purple-text:#534AB7; --purple-border:#7F77DD;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+                 'Noto Sans KR', sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .app { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* ── Header ── */
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+  .header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+  /* ── Year section ── */
+  .year-section { margin-bottom: 28px; }
+  .year-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px; padding-left: 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .year-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border-light);
+  }
+
+  /* ── Month group ── */
+  .month-group { margin-bottom: 20px; }
+  .month-label {
+    font-size: 12px; font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px; padding-left: 4px;
+  }
+
+  /* ── Diary card ── */
+  .diary-list { display: flex; flex-direction: column; gap: 6px; }
+  .diary-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.1s, border-color 0.1s;
+    cursor: pointer;
+  }
+  .diary-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-color: var(--border-mid);
+  }
+  .diary-card.current {
+    border-color: var(--blue-border);
+    background: var(--blue-bg);
+  }
+
+  .card-week {
+    min-width: 52px;
+    font-size: 13px; font-weight: 700;
+    color: var(--blue-text);
+    flex-shrink: 0;
+  }
+  .diary-card.current .card-week { color: var(--blue-text); }
+
+  .card-body { flex: 1; }
+  .card-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+  .card-range { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  .card-badge {
+    font-size: 10px; padding: 2px 8px;
+    border-radius: 20px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .badge-current { background: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .badge-past    { background: var(--gray-bg);  color: var(--gray-text); }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-tertiary); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>업무일지 목록</h1>
+    <div class="sub">대구 북구 도시재생지원센터</div>
+  </div>
+
+  <div class="year-section">
+    <div class="year-label">2026년</div>
+
+    <div class="month-group">
+      <div class="month-label">3월</div>
+      <div class="diary-list">
+        <a class="diary-card current" href="../index.html">
+          <div class="card-week">4주차</div>
+          <div class="card-body">
+            <div class="card-title">3월 4주차 업무일지</div>
+            <div class="card-range">2026년 3월 23일(월) — 3월 29일(일)</div>
+          </div>
+          <span class="card-badge badge-current">현재</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
