@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무일지 — 대구 북구 도시재생지원센터</title>
+<script src="data.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary:   #ffffff;
+    --bg-secondary: #f7f6f3;
+    --bg-tertiary:  #f0efe9;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b67;
+    --text-tertiary: #9d9d98;
+    --border-light:  rgba(0,0,0,0.10);
+    --border-mid:    rgba(0,0,0,0.18);
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --red-bg:    #FCEBEB; --red-text:   #A32D2D; --red-border: #E24B4A;
+    --amber-bg:  #FAEEDA; --amber-text: #633806; --amber-border: #EF9F27;
+    --blue-bg:   #E6F1FB; --blue-text:  #185FA5; --blue-border: #378ADD;
+    --green-bg:  #EAF3DE; --green-text: #3B6D11; --green-border: #639922;
+    --gray-bg:   #F1EFE8; --gray-text:  #5F5E5A; --gray-border: #888780;
+    --purple-bg: #EEEDFE; --purple-text:#534AB7; --purple-border:#7F77DD;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+                 'Noto Sans KR', sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .app { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* ── Header ── */
+  .header { margin-bottom: 20px; }
+  .header h1 { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+  .header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+  /* ── Alert ── */
+  .alert {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--red-text);
+    margin-bottom: 20px;
+  }
+
+  /* ── Main tabs ── */
+  .tabs {
+    display: flex; gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto; padding-bottom: 2px;
+  }
+  .tab {
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .tab:hover { border-color: var(--border-mid); color: var(--text-primary); }
+  .tab.active { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .tab.today  { border-color: var(--red-border); color: var(--red-text); }
+  .tab.today.active { background: var(--red-bg); }
+  .tab.event  { border-color: var(--amber-border); color: var(--amber-text); }
+  .tab.event.active { background: var(--amber-bg); }
+  .tab.spec   { border-color: var(--purple-border); color: var(--purple-text); }
+  .tab.spec.active { background: var(--purple-bg); }
+
+  /* ── Panel ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 16px; }
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 8px; padding-left: 2px;
+  }
+
+  /* ── Task card ── */
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+  .task {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex; gap: 10px; align-items: flex-start;
+    transition: box-shadow 0.1s;
+  }
+  .task:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .task.urgent { border-left: 3px solid var(--red-border); }
+  .task.warn   { border-left: 3px solid var(--amber-border); }
+  .task.info   { border-left: 3px solid var(--blue-border); }
+  .task.done   { border-left: 3px solid var(--green-border); opacity: 0.7; }
+  .task.purple-task { border-left: 3px solid var(--purple-border); }
+
+  .badge {
+    font-size: 10px; padding: 2px 7px;
+    border-radius: 20px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  }
+  .badge-red    { background: var(--red-bg);    color: var(--red-text); }
+  .badge-amber  { background: var(--amber-bg);  color: var(--amber-text); }
+  .badge-blue   { background: var(--blue-bg);   color: var(--blue-text); }
+  .badge-green  { background: var(--green-bg);  color: var(--green-text); }
+  .badge-gray   { background: var(--gray-bg);   color: var(--gray-text); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple-text); }
+
+  .task-content .t1 { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 3px; }
+  .task-content .t2 { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ── Progress bar ── */
+  .progress-wrap { margin-top: 8px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .progress-header span { font-size: 12px; color: var(--text-secondary); }
+  .progress-header strong { font-size: 12px; color: var(--blue-text); }
+  .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 10px; background: var(--blue-border); transition: width 0.4s ease; }
+  .progress-note { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border-light); margin: 14px 0; }
+
+  /* ── Timeline ── */
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item {
+    display: flex; gap: 14px; padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-left { min-width: 72px; flex-shrink: 0; }
+  .tl-date { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .tl-label { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+  .tl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .tl-dot.red    { background: var(--red-border); }
+  .tl-dot.amber  { background: var(--amber-border); }
+  .tl-dot.blue   { background: var(--blue-border); }
+  .tl-dot.green  { background: var(--green-border); }
+  .tl-dot.purple { background: var(--purple-border); }
+  .tl-body { flex: 1; }
+  .tl-title { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  .tl-tasks { display: flex; flex-direction: column; gap: 3px; }
+  .tl-task {
+    font-size: 12px; color: var(--text-secondary);
+    padding-left: 12px; position: relative; line-height: 1.5;
+  }
+  .tl-task::before { content: '·'; position: absolute; left: 3px; color: var(--text-tertiary); }
+
+  /* ── Role table ── */
+  .role-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .role-table th {
+    text-align: left; font-size: 10px; font-weight: 600;
+    color: var(--text-tertiary); letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 6px 8px; border-bottom: 1px solid var(--border-mid);
+  }
+  .role-table td {
+    padding: 8px 8px; border-bottom: 1px solid var(--border-light);
+    vertical-align: top; line-height: 1.5;
+  }
+  .role-table tr:last-child td { border-bottom: none; }
+  .role-person { font-weight: 500; color: var(--blue-text); }
+
+  /* ── Education card ── */
+  .edu-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .edu-card.urgent { border-color: var(--red-border); }
+  .edu-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .edu-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+  .edu-num.ok     { background: var(--blue-bg); color: var(--blue-text); }
+  .edu-num.pending { background: var(--red-bg); color: var(--red-text); }
+  .edu-title { font-size: 14px; font-weight: 500; }
+  .edu-meta  { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .status-chip {
+    display: inline-flex; align-items: center;
+    font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; margin-left: 6px;
+  }
+  .chip-ok      { background: var(--green-bg);  color: var(--green-text); }
+  .chip-pending { background: var(--red-bg);    color: var(--red-text); }
+
+  /* ── Info box (accounting) ── */
+  .info-box {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 10px 13px;
+    margin-top: 4px;
+    font-size: 12px; color: var(--text-secondary); line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- JS가 렌더링합니다 -->
+</div>
+
+<script>
+// ============================================================
+// 렌더링 엔진
+// ============================================================
+
+const D = DIARY_DATA;
+
+// priority → badge class + border class
+const PRIORITY_MAP = {
+  urgent: { border: 'urgent', badge: 'badge-red' },
+  warn:   { border: 'warn',   badge: 'badge-amber' },
+  info:   { border: 'info',   badge: 'badge-blue' },
+  done:   { border: 'done',   badge: 'badge-green' }
+};
+
+function badge(category, priority) {
+  const cls = PRIORITY_MAP[priority]?.badge || 'badge-gray';
+  return `<span class="badge ${cls}">${esc(category)}</span>`;
+}
+
+function task(t) {
+  const cls = PRIORITY_MAP[t.priority]?.border || 'info';
+  return `
+  <div class="task ${cls}">
+    ${badge(t.category, t.priority)}
+    <div class="task-content">
+      <div class="t1">${esc(t.title)}</div>
+      ${t.desc ? `<div class="t2">${esc(t.desc)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function section(sec) {
+  return `
+  <div class="section">
+    <div class="section-label">${esc(sec.title)}</div>
+    <div class="task-list">${sec.tasks.map(task).join('')}</div>
+  </div>`;
+}
+
+function tlDot(color) {
+  return `<div class="tl-dot ${color || 'blue'}"></div>`;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+}
+
+// ── 일별 탭 패널 ──
+function renderDayPanel(day) {
+  return `
+  <div class="panel" id="panel-${day.id}">
+    ${day.sections.map(section).join('')}
+  </div>`;
+}
+
+// ── 발대식 패널 ──
+function renderFestaPanel() {
+  const f = D.festa;
+  const tlHTML = f.timeline.map(t => `
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-date">${esc(t.date)}</div>
+        <div class="tl-label">${esc(t.label)}</div>
+      </div>
+      ${tlDot(t.dotColor)}
+      <div class="tl-body">
+        <div class="tl-title" ${t.dotColor === 'red' ? 'style="color:var(--red-text)"' : ''}>${esc(t.title)}</div>
+        <div class="tl-tasks">${t.tasks.map(s => `<div class="tl-task">${esc(s)}</div>`).join('')}</div>
+      </div>
+    </div>`).join('');
+
+  const rolesHTML = f.roles.map(r => `
+    <tr>
+      <td>${esc(r.role)}</td>
+      <td class="role-person">${esc(r.person)}</td>
+      <td>${esc(r.detail)}</td>
+    </tr>`).join('');
+
+  return `
+  <div class="panel" id="panel-festa">
+    <div class="section">
+      <div class="section-label">준비 타임라인 (${esc(f.venue)})</div>
+      <div class="timeline">${tlHTML}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-label">당일 역할 분담</div>
+      <table class="role-table">
+        <thead><tr><th>구분</th><th>담당자</th><th>주요 내용</th></tr></thead>
+        <tbody>${rolesHTML}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── 역량강화교육 패널 ──
+function renderEduPanel() {
+  const cards = D.education.map(e => {
+    const ok = e.status === 'done';
+    const chipClass = ok ? 'chip-ok' : 'chip-pending';
+    const chipText  = ok ? '섭외완료' : '섭외필요';
+    const numClass  = ok ? 'ok' : 'pending';
+    const cardUrgent = !ok ? ' urgent' : '';
+    const prepBadge  = !ok ? 'badge-red urgent' : 'badge-blue info';
+    const prepBorder = !ok ? 'urgent' : 'info';
+    return `
+    <div class="edu-card${cardUrgent}">
+      <div class="edu-header">
+        <div class="edu-num ${numClass}">${e.round}</div>
+        <div>
+          <div class="edu-title">${esc(e.title)}</div>
+          <div class="edu-meta">
+            ${esc(e.date)} · ${esc(e.instructor)}
+            <span class="status-chip ${chipClass}">${chipText}</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-list">
+        <div class="task ${prepBorder}">
+          <span class="badge ${prepBadge}">준비사항</span>
+          <div class="task-content">
+            <div class="t2">${e.preps.map(esc).join('<br>')}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const commonHTML = D.educationCommon.map(c => `
+    <div class="task info">
+      <span class="badge badge-blue">공통</span>
+      <div class="task-content">
+        <div class="t1">${esc(c.title)}</div>
+        <div class="t2">${esc(c.desc)}</div>
+      </div>
+    </div>`).join('');
+
+  return `
+  <div class="panel" id="panel-edu">
+    <div class="section">
+      <div class="section-label">3회 역량강화교육</div>
+      ${cards}
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-label">공통 준비 체크리스트</div>
+      <div class="task-list">${commonHTML}</div>
+    </div>
+  </div>`;
+}
+
+// ── 회계 패널 ──
+function renderAccPanel() {
+  const tlHTML = D.accounting.map(a => `
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-date">${esc(a.date)}</div>
+        <div class="tl-label">${esc(a.label)}</div>
+      </div>
+      ${tlDot(a.dotColor)}
+      <div class="tl-body">
+        <div class="tl-title" ${a.dotColor === 'red' ? 'style="color:var(--red-text)"' : ''}>${esc(a.title)}</div>
+        ${a.detail ? `<div class="info-box">${esc(a.detail)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  return `
+  <div class="panel" id="panel-acc">
+    <div class="section">
+      <div class="section-label">3~4월 회계 일정</div>
+      <div class="timeline">${tlHTML}</div>
+    </div>
+  </div>`;
+}
+
+// ── 메인 탭 ──
+const MAIN_TABS = [
+  { id: 'day',   label: '📅 이번 주 일지', style: 'today' },
+  { id: 'festa', label: '🎉 발대식 준비',  style: 'spec' },
+  { id: 'edu',   label: '📚 역량강화교육', style: 'spec' },
+  { id: 'acc',   label: '💰 회계 캘린더', style: '' }
+];
+
+// ── 일별 서브탭 ──
+function dayTabStyle(day) {
+  if (day.dayState === 'today') return 'today';
+  if (day.dayState === 'event') return 'event';
+  return '';
+}
+
+// ── 전체 렌더링 ──
+function render() {
+  const m = D.meta;
+  const mainTabsHTML = MAIN_TABS.map(t =>
+    `<div class="tab ${t.style}" data-main="${t.id}">${t.label}</div>`
+  ).join('');
+
+  const dayTabsHTML = D.days.map(d =>
+    `<div class="tab ${dayTabStyle(d)}" data-day="${d.id}">${esc(d.label)}</div>`
+  ).join('');
+
+  const dayPanels = D.days.map(renderDayPanel).join('');
+
+  // 진행률
+  const pct = Math.round((m.recruitProgress.current / m.recruitProgress.total) * 100);
+
+  const html = `
+    <div class="header">
+      <h1>${esc(m.weekLabel)}</h1>
+      <div class="sub">${esc(m.weekRange)}</div>
+    </div>
+    <div class="alert">${esc(m.todayAlert)}</div>
+
+    <div class="tabs" id="main-tabs">${mainTabsHTML}</div>
+
+    <!-- 이번 주 일지 -->
+    <div class="panel active" id="panel-day">
+      <div class="tabs" id="day-tabs">${dayTabsHTML}</div>
+      ${dayPanels}
+
+      <div class="divider"></div>
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span>서포터즈 모집 현황</span>
+          <strong>${m.recruitProgress.current} / ${m.recruitProgress.total}명</strong>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="progress-note">📅 마감: ${esc(m.recruitProgress.deadline)}</div>
+      </div>
+    </div>
+
+    ${renderFestaPanel()}
+    ${renderEduPanel()}
+    ${renderAccPanel()}
+  `;
+
+  document.getElementById('app').innerHTML = html;
+  initTabs();
+}
+
+// ── 탭 동작 ──
+function initTabs() {
+  // 메인 탭
+  const mainTabs = document.querySelectorAll('#main-tabs .tab');
+  const mainPanels = document.querySelectorAll('#app > .panel');
+  mainTabs[0].classList.add('active');
+
+  mainTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mainTabs.forEach(t => t.classList.remove('active'));
+      mainPanels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.main).classList.add('active');
+    });
+  });
+
+  // 일별 탭
+  const dayTabs = document.querySelectorAll('#day-tabs .tab');
+  const dayPanelsAll = document.querySelectorAll('[id^="panel-"]:not(#panel-day):not(#panel-festa):not(#panel-edu):not(#panel-acc)');
+
+  // 오늘(today) 탭 자동 선택
+  let defaultDayTab = null;
+  dayTabs.forEach(tab => {
+    const day = D.days.find(d => d.id === tab.dataset.day);
+    if (day?.dayState === 'today') defaultDayTab = tab;
+  });
+  if (!defaultDayTab) defaultDayTab = dayTabs[0];
+  defaultDayTab.classList.add('active');
+  document.getElementById('panel-' + defaultDayTab.dataset.day).classList.add('active');
+
+  dayTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      dayTabs.forEach(t => t.classList.remove('active'));
+      dayPanelsAll.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.day).classList.add('active');
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
